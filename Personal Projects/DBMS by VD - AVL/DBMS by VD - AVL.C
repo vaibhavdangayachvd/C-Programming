@@ -31,6 +31,8 @@
        -More Functional
        -Complete port from v3.1
        -Choose options directly without pressing enter
+       -Change password feature
+       -Separate Special Password Input function
 */
 //Preprocessor directives
 #include<stdio.h>
