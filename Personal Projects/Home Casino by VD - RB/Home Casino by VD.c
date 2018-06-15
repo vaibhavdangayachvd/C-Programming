@@ -107,7 +107,7 @@ int main()
     while(1)
     {
         system("cls");
-        printf("\n\t\t  Welcome to HOME CASINO\n\n");
+        printf("\n\t\t  Welcome to HOME CASINO By VD\n\n");
         printf("Choose Option:-\n1 - Create new User ID\n2 - User Login\n3 - Admin Login\n4 - Forgot UserID\n5 - How to Use\n Backspace - Exit\n\n->");
         fflush(stdin);
         option = getch();
