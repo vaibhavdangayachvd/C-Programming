@@ -20,6 +20,7 @@
        - Change password feature for all
        - Admins can directly give coins to any id
        - Added How to use option
+       - Forgot password option
 */
 //Preprocessor directives
 #include<stdio.h>
@@ -108,7 +109,7 @@ int main()
     {
         system("cls");
         printf("\n\t\t  Welcome to HOME CASINO By VD\n\n");
-        printf("Choose Option:-\n1 - Create new User ID\n2 - User Login\n3 - Admin Login\n4 - Forgot UserID\n5 - How to Use\n Backspace - Exit\n\n->");
+        printf("Choose Option:-\n1 - Create new User ID\n2 - User Login\n3 - Admin Login\n4 - Forgot UserID\n5 - Forgot Password\n6 - How to Use\n Backspace - Exit\n\n->");
         fflush(stdin);
         option = getch();
         system("cls");
@@ -212,6 +213,10 @@ int main()
             hold_screen();
             break;
         case '5':
+            printf("Contact admin to know your password !!");
+            hold_screen();
+            break;
+        case '6':
             print_help();
             hold_screen();
             break;
@@ -1081,7 +1086,8 @@ void list_users(tree_node *ptr)
     if(ptr==sentinel)
         return;
     list_users(ptr->lchild);
-    printf("User ID : %d\nName : %s\nCoin Balance : %d\n\n",ptr->id,ptr->name,ptr->coins);
+    if(ptr->admin==false)
+        printf("User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
     list_users(ptr->rchild);
     return;
 }
