@@ -21,7 +21,8 @@
        - Admins can directly give coins to any id
        - Added How to use option
        - Forgot password option
-       Bugfix : Superadmin can now see admins in users list while admins cant see other admins(16/06/18)
+       Bugfix : - Superadmin can now see admins in users list while admins cant see other admins(16/06/18)
+                - Minor Bug Fix(Making Result Move Random)
 */
 //Preprocessor directives
 #include<stdio.h>
@@ -678,7 +679,8 @@ void head_tail(tree_node *user)
         }
         srand(time(NULL));
         result=rand();
-        result%=2;
+        if(result>1)
+            result%=2;
         if(!result)
             win='h';
         else
@@ -734,7 +736,8 @@ void rock_paper(tree_node *user)
             }
             srand(time(NULL));
             result=rand();
-            result%=3;
+            if(result>2)
+                result%=3;
             if(result==0)
                 win='r';
             else if(result==1)
@@ -817,8 +820,10 @@ void up_down(tree_node *user)
         d1 =rand();
         srand(time(NULL));
         d2 =rand();
-        d1%=6;
-        d2%=6;
+        if(d1>5)
+            d1%=6;
+        if(d2>5)
+            d2%=6;
         d1++,d2++;
         result=d1+d2;
         if(result>7)
