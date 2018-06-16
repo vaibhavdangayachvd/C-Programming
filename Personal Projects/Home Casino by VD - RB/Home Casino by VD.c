@@ -21,6 +21,7 @@
        - Admins can directly give coins to any id
        - Added How to use option
        - Forgot password option
+       Bugfix : Superadmin can now see admins in users list while admins cant see other admins(16/06/18)
 */
 //Preprocessor directives
 #include<stdio.h>
@@ -74,7 +75,7 @@ void change_pw(tree_node *);//Change Password
 tree_node *find_admin_node(int);//Find user node
 void open_admin_menu(tree_node *);//Open user menu
 //3.1 Admin menu functions
-void list_users(tree_node *);//List Users
+void list_users(tree_node *,int);//List Users
 void give_coins(void);//Give Coins
 void print_pending_req(tree_node *);//Print Pending requests
 void del_user(int);//User delete function
@@ -983,7 +984,10 @@ void open_admin_menu(tree_node *admin)
         switch(option)
         {
         case '1':
-            list_users(root);
+            if(admin->id==0)
+                list_users(root,1);
+            else
+                list_users(root,0);
             hold_screen();
             break;
         case '2':
@@ -1081,14 +1085,19 @@ void open_admin_menu(tree_node *admin)
 }
 //3 Admin menu functions
 //3.1 List Users Function
-void list_users(tree_node *ptr)
+void list_users(tree_node *ptr,int super_admin)
 {
     if(ptr==sentinel)
         return;
-    list_users(ptr->lchild);
-    if(ptr->admin==false)
+    list_users(ptr->lchild,super_admin);
+    if(super_admin==true)
         printf("User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
-    list_users(ptr->rchild);
+    else
+    {
+        if(ptr->admin==false)
+            printf("User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
+    }
+    list_users(ptr->rchild,super_admin);
     return;
 }
 //3.2 Give Coin Function
