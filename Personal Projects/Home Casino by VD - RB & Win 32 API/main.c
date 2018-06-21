@@ -1858,7 +1858,7 @@ void AddControlsUser(HWND hWnd)
     char name[40]="Welcome ",coin_bal[30];
     sprintf(coin_bal,"Coin Balance : %d",user->coins);
     strcat(name,user->name);
-    strcat(name," !! Its you User Panel.");
+    strcat(name," !! Its your User Panel.");
     CreateWindow("static",name,WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,80,10,310,20,hWnd,NULL,NULL,NULL);
     CreateWindow("static",coin_bal,WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,250,40,210,20,hWnd,NULL,NULL,NULL);
     CreateWindow("static","Choose Option :-",WS_VISIBLE|WS_CHILD,20,50,110,20,hWnd,NULL,NULL,NULL);
@@ -1877,7 +1877,7 @@ void AddControlsAdmin(HWND hWnd)
         strcpy(status,"Admin Type : Super");
     CreateWindow("static",status,WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,330,40,140,20,hWnd,NULL,NULL,NULL);
     strcat(name,user->name);
-    strcat(name," !! Its you Admin Panel.");
+    strcat(name," !! Its your Admin Panel.");
     CreateWindow("static",name,WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,80,10,310,20,hWnd,NULL,NULL,NULL);
     CreateWindow("static","Choose Option :-",WS_VISIBLE|WS_CHILD,20,50,110,20,hWnd,NULL,NULL,NULL);
     CreateWindow("button","Give Coins",WS_VISIBLE|WS_CHILD|SS_CENTER|WS_BORDER,160,80,150,20,hWnd,(HMENU)GIVE_COINS,NULL,NULL);
