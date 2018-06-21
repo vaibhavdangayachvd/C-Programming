@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1529576272 source:d:\documents\repos\c programming\practise\win32 api\home casino by vd - rb\main.c
+	<windows.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<time.h>
+	<ctype.h>
+
