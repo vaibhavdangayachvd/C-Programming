@@ -39,6 +39,7 @@
        - First Boot Information Message
        - Some Major and Minor bug fixes
        - Removed Unused Code
+       Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -76,12 +77,13 @@
 #define STONE 29
 #define PAPER 30
 #define SCISSOR 31
+#define LEADER 32
 typedef enum{false,true} boole;//For Admin status
 //Red-Black Tree Structure
 struct rb_tree
 {
     boole admin;
-    int coins,request,id;
+    int coins,request,id,cashout;
     char name[20],password[20];
     enum {red,black} color;
     struct rb_tree *lchild;
@@ -92,6 +94,14 @@ typedef struct rb_tree tree_node;
 tree_node *root,*sentinel,*user;
 int users = 0;
 int casino_gate=0,bet_flag=1,bet_amount=0;
+//Leader Board Structure
+struct leader
+{
+    char name[20];
+    int amount;
+    struct leader *next;
+}*head=NULL;
+typedef struct leader node;
 //Game Global Variables
 //Internal Functions
 //File Handeling Functions
@@ -99,9 +109,9 @@ void start_check_db(void);//Check for database file during startup
 void load_from_file(void);//Load file contents
 void clear_file(void);//Clear File
 void reappend_file(tree_node *);//Reappend File
-void append_to_file(int,char[],char[],int,int,int);//Insert data in file
+void append_to_file(int,char[],char[],int,int,int,int);//Insert data in file
 //Creation Functions
-void  create_new_user(int,char[],char[],int,int,boole);//Insert New User
+void  create_new_user(int,char[],char[],int,int,int,boole);//Insert New User
 void balance_after_insert(tree_node *);//Balance Tree
 void rotate_left(tree_node*);//rotate tree left
 void rotate_right(tree_node*);//Rotate Tree Right
@@ -122,6 +132,10 @@ tree_node *in_succ(tree_node *);//Find Inorder successor
 void check_bet(int,HWND);//Check bet
 void post_game_exit(void);//Reset Global variables after exit
 int rps_win(char ,char );//RPS win algorithm
+void create_leaderboard(tree_node *);//Create Leader board
+void insert_leader_board(char[],int);//Insert In Leader Board
+void show_leader_board(HWND);//Show leader board
+void free_list(void);//Free List
 //GUI Functions
 //Window Procedures
 //Home
@@ -348,6 +362,7 @@ int WINAPI WinMain(HINSTANCE hInst,HINSTANCE hPrevInst,LPSTR args,int ncmdshow)
 //Window Procedures
 LRESULT CALLBACK WindowProcedureHome(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 {
+    char *leader;
     switch(msg)
     {
     case WM_COMMAND:
@@ -375,6 +390,11 @@ LRESULT CALLBACK WindowProcedureHome(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             break;
         case ADMIN_LOGIN:
             login_admin();
+            break;
+        case LEADER:
+            create_leader_board(root);
+            show_leader_board(hWnd);
+            free(leader);
             break;
         }
         break;
@@ -423,7 +443,7 @@ LRESULT CALLBACK WindowProcedureCreateId(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             {
                 if(user->id==0)
                 {
-                    create_new_user(users,name,pass,500,0,true);
+                    create_new_user(users,name,pass,500,0,0,true);
                     sprintf(name,"Admin Created !!\nID : %d",users-1);
                     MessageBox(hWnd,name,"Message",MB_OK|MB_ICONINFORMATION);
                     clear_file();
@@ -438,7 +458,7 @@ LRESULT CALLBACK WindowProcedureCreateId(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             }
             else
             {
-                create_new_user(users,name,pass,500,0,false);
+                create_new_user(users,name,pass,500,0,0,false);
                 clear_file();
                 reappend_file(root);
                 sprintf(name,"User Created !!\nYour ID is %d\nRemember it!",users-1);
@@ -984,6 +1004,7 @@ LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
                 break;
             }
             user->coins-=coins;
+            user->cashout+=coins;
             clear_file();
             reappend_file(root);
             MessageBox(hWnd,"Cashout Successful !! Collect Cash from Counter","Message",MB_OK|MB_ICONINFORMATION);
@@ -1814,6 +1835,7 @@ void AddControlsHome(HWND hWnd)
 {
     CreateWindow("static","WELCOME TO HOME CASINO by VD",WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,110,10,260,20,hWnd,NULL,NULL,NULL);
     CreateWindow("static","Choose Option :-",WS_VISIBLE|WS_CHILD,20,50,110,20,hWnd,NULL,NULL,NULL);
+    CreateWindow("button","Leaderboard",WS_VISIBLE|WS_CHILD|SS_CENTER|WS_BORDER,320,50,150,20,hWnd,(HMENU)LEADER,NULL,NULL);
     CreateWindow("button","Create New User ID",WS_VISIBLE|WS_CHILD|SS_CENTER|WS_BORDER,160,80,150,20,hWnd,(HMENU)NEW_USER_ID,NULL,NULL);
     CreateWindow("button","Login USER",WS_VISIBLE|WS_CHILD|SS_CENTER|WS_BORDER,60,120,150,20,hWnd,(HMENU)USER_LOGIN,NULL,NULL);
     CreateWindow("button","Login ADMIN",WS_VISIBLE|WS_CHILD|SS_CENTER|WS_BORDER,260,120,150,20,hWnd,(HMENU)ADMIN_LOGIN,NULL,NULL);
@@ -1999,6 +2021,7 @@ void start_check_db(void)
         strcpy(root->name,"super_admin");
         root->coins=500;
         root->request=0;
+        root->cashout=0;
         root->admin=true;
         root->lchild=sentinel;
         root->rchild=sentinel;
@@ -2018,18 +2041,18 @@ void load_from_file(void)
 {
 
     FILE *fp;
-    int id,coins,request,admin;
+    int id,coins,request,admin,cashout;
     char name[20],pass[20];
     fp=fopen("database","r");
     while(!feof(fp))
     {
-        fscanf(fp,"%d %s %s %d %d %d",&id,name,pass,&coins,&request,&admin);
+        fscanf(fp,"%d %s %s %d %d %d %d",&id,name,pass,&coins,&request,&cashout,&admin);
         if(id==-999)
             continue;
         if(admin)
-            create_new_user(id,name,pass,coins,request,true);
+            create_new_user(id,name,pass,coins,request,cashout,true);
         else
-            create_new_user(id,name,pass,coins,request,false);
+            create_new_user(id,name,pass,coins,request,cashout,false);
         users = id+1;
     }
     fclose(fp);
@@ -2039,7 +2062,7 @@ void clear_file(void)
 {
     FILE *fp;
     fp=fopen("database","w");
-    fprintf(fp,"%d %s %s %d %d %d\n",-999,"start","start",500,0,0);
+    fprintf(fp,"%d %s %s %d %d %d %d\n",-999,"start","start",500,0,0,0);
     fclose(fp);
 }
 //Reappend File
@@ -2048,15 +2071,15 @@ void reappend_file(tree_node *ptr)
     if(ptr==sentinel)
         return;
     reappend_file(ptr->lchild);
-    append_to_file(ptr->id,ptr->name,ptr->password,ptr->coins,ptr->request,ptr->admin);
+    append_to_file(ptr->id,ptr->name,ptr->password,ptr->coins,ptr->request,ptr->cashout,ptr->admin);
     reappend_file(ptr->rchild);
 }
 //Insert Data in file
-void append_to_file(int id,char name[],char pass[],int coins,int request,int admin)
+void append_to_file(int id,char name[],char pass[],int coins,int request,int cashout,int admin)
 {
     FILE *fp;
     fp=fopen("database","a");
-    fprintf(fp,"%d %s %s %d %d %d\n",id,name,pass,coins,request,admin);
+    fprintf(fp,"%d %s %s %d %d %d %d\n",id,name,pass,coins,request,cashout,admin);
     fclose(fp);
 }//Search User ID
 int search_userid(tree_node *ptr,char name[])
@@ -2075,7 +2098,7 @@ int search_userid(tree_node *ptr,char name[])
     return flag;
 }
 //New User
-void create_new_user(int id,char name[],char pass[],int coins,int request,boole admin)
+void create_new_user(int id,char name[],char pass[],int coins,int request,int cashout,boole admin)
 {
     tree_node *ptr,*par,*temp;
     ptr=root;
@@ -2098,6 +2121,7 @@ void create_new_user(int id,char name[],char pass[],int coins,int request,boole 
         strcpy(temp->name,name);
         temp->request=request;
         temp->coins=coins;
+        temp->cashout=cashout;
         temp->admin=admin;
         temp->lchild=sentinel;
         temp->rchild=sentinel;
@@ -2536,4 +2560,79 @@ int rps_win(char a,char b)
         return 2;
     else
         return 1;
+}
+void create_leader_board(tree_node *ptr)
+{
+    if(ptr==sentinel)
+        return;
+    create_leader_board(ptr->lchild);
+    if(!ptr->admin)
+        insert_leader_board(ptr->name,ptr->cashout);
+    create_leader_board(ptr->rchild);
+}
+void insert_leader_board(char name[],int amount)
+{
+    node *ptr=head,*prev=NULL,*temp;
+    if(head==NULL)
+    {
+        head=(node*)malloc(sizeof(node));
+        strcpy(head->name,name);
+        head->amount=amount;
+        head->next=NULL;
+        return;
+    }
+    while(ptr->amount>amount)
+    {
+        prev=ptr;
+        ptr=ptr->next;
+        if(ptr==NULL)
+        {
+            break;
+        }
+    }
+    temp=(node*)malloc(sizeof(node));
+    strcpy(temp->name,name);
+    temp->amount=amount;
+    temp->next=ptr;
+    if(prev==NULL)
+        head=temp;
+    else
+        prev->next=temp;
+    return;
+}
+void show_leader_board(HWND hWnd)
+{
+    node *ptr;
+    char *leader,buffer[30];
+    leader=(char*)malloc(sizeof(char)*users*30);
+    *leader='\0';
+    strcat(leader,"*Top Cash Winners*\n\n");
+    ptr=head;
+    if(ptr==NULL)
+    {
+        MessageBox(hWnd,"No Cashouts Yet","Leaderboard",MB_OK);
+    }
+    else
+    {
+        while(ptr!=NULL)
+        {
+            sprintf(buffer,"%s - Rs %d\n",ptr->name,ptr->amount);
+            strcat(leader,buffer);
+            ptr=ptr->next;
+        }
+        MessageBox(hWnd,leader,"Leaderboard",MB_OK);
+    }
+    free_list();
+    free(leader);
+    return;
+}
+void free_list(void)
+{
+    node *temp;
+    while(head!=NULL)
+    {
+        head=head->next;
+        free(head);
+        head=temp;
+    }
 }
