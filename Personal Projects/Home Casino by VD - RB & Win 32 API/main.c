@@ -26,21 +26,21 @@
                 - Minor Bug Fix(Making Result Move Random)(17/06/18)
                 - Admin can see pending coins(17/06/18)
 
-    v2 - Code Rebased
-       - Integrated GUI using Win32Api
-       - OOP Approach
-       - Added reset request for users
-       - Added reset casino for admins
-       - Minimum Cashout amount
-       - Better betting system
-       - Better event handling
-       - Free Coins on user login
-       - Connected window open and close without stack
-       - First Boot Information Message
-       - Some Major and Minor bug fixes
-       - Removed Unused Code
-       Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
-       Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
+    v2.0 - Code Rebased
+         - Integrated GUI using Win32Api
+         - OOP Approach
+         - Added reset request for users
+         - Added reset casino for admins
+         - Minimum Cashout amount
+         - Better betting system
+         - Better event handling
+         - Free Coins on user login
+         - Connected window open and close without stack
+         - First Boot Information Message
+         - Some Major and Minor bug fixes
+         - Removed Unused Code
+    v2.1 - Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
+           Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
 */
 //Preprocessor Directives
 #include<windows.h>
