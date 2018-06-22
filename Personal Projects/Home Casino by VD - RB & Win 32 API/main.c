@@ -40,6 +40,7 @@
        - Some Major and Minor bug fixes
        - Removed Unused Code
        Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
+       Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -2566,7 +2567,7 @@ void create_leader_board(tree_node *ptr)
     if(ptr==sentinel)
         return;
     create_leader_board(ptr->lchild);
-    if(!ptr->admin)
+    if(!ptr->admin&&ptr->cashout)
         insert_leader_board(ptr->name,ptr->cashout);
     create_leader_board(ptr->rchild);
 }
