@@ -41,6 +41,7 @@
          - Removed Unused Code
     v2.1 - Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
            Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
+           Minor Change : Maximize option removed
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -351,7 +352,7 @@ int WINAPI WinMain(HINSTANCE hInst,HINSTANCE hPrevInst,LPSTR args,int ncmdshow)
     if(!RegisterClass(&up_down))
         return -1;
     //Creating Home Window
-    CreateWindow("home","Home Casino",WS_OVERLAPPEDWINDOW | WS_VISIBLE,500,200,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("home","Home Casino",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,500,200,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1632,7 +1633,7 @@ LRESULT CALLBACK WindowProcedureStonePaper(HWND hWnd,UINT msg,WPARAM wp,LPARAM l
 //Message Loops
 void forgot_id(void)
 {
-    CreateWindow("forgotid","Forgot ID",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("forgotid","Forgot ID",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1643,9 +1644,9 @@ void forgot_id(void)
 void create_id(void)
 {
     if(user->admin==true)
-        CreateWindow("createid","Create New Admin ID",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+        CreateWindow("createid","Create New Admin ID",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     else
-        CreateWindow("createid","Create New ID",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+        CreateWindow("createid","Create New ID",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1656,7 +1657,7 @@ void create_id(void)
 void login_user(void)
 {
     HWND hWnd;
-    hWnd = CreateWindow("login","Login User",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd = CreateWindow("login","Login User",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     CreateWindow("static","Here Users Can Login",WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,110,10,260,20,hWnd,NULL,NULL,NULL);
     CreateWindow("button","Login",WS_VISIBLE|WS_CHILD|SS_CENTER,260,130,100,20,hWnd,(HMENU)USER_LOGIN,NULL,NULL);
     MSG msg={0};
@@ -1669,7 +1670,7 @@ void login_user(void)
 void login_admin(void)
 {
     HWND hWnd;
-    hWnd = CreateWindow("login","Login Admin",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd = CreateWindow("login","Login Admin",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     CreateWindow("static","Here Admins Can Login",WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,110,10,260,20,hWnd,NULL,NULL,NULL);
     CreateWindow("button","Login",WS_VISIBLE|WS_CHILD|SS_CENTER,260,130,100,20,hWnd,(HMENU)ADMIN_LOGIN,NULL,NULL);
     MSG msg={0};
@@ -1682,7 +1683,7 @@ void login_admin(void)
 void user_panel(void)
 {
     HWND hWnd;
-    hWnd = CreateWindow("user","User Panel",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd = CreateWindow("user","User Panel",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Free Coins");
     SetMenu(hWnd,hMenu);
     MSG msg={0};
@@ -1694,7 +1695,7 @@ void user_panel(void)
 }
 void admin_panel(void)
 {
-    CreateWindow("admin","Admin Panel",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("admin","Admin Panel",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1704,7 +1705,7 @@ void admin_panel(void)
 }
 void change_pw(void)
 {
-    CreateWindow("change_pw","Change Password",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("change_pw","Change Password",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1714,7 +1715,7 @@ void change_pw(void)
 }
 void cashout(void)
 {
-    CreateWindow("cashout","Cashout",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("cashout","Cashout",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1724,7 +1725,7 @@ void cashout(void)
 }
 void req_coins(void)
 {
-    CreateWindow("req","Request Coins",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("req","Request Coins",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1734,7 +1735,7 @@ void req_coins(void)
 }
 void play_casino(void)
 {
-    CreateWindow("casino","Play Casino",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("casino","Play Casino",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1744,7 +1745,7 @@ void play_casino(void)
 }
 void give_coins(void)
 {
-    CreateWindow("give_coins","Give Coins",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("give_coins","Give Coins",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1754,7 +1755,7 @@ void give_coins(void)
 }
 void delete_user(void)
 {
-    CreateWindow("delete_user","Delete User",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    CreateWindow("delete_user","Delete User",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1765,7 +1766,7 @@ void delete_user(void)
 void head_tail(void)
 {
     HWND hWnd;
-    hWnd=CreateWindow("head_tail","Head Tail",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd=CreateWindow("head_tail","Head Tail",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Rules");
     SetMenu(hWnd,hMenu);
     AddControlsGame(hWnd);
@@ -1779,7 +1780,7 @@ void head_tail(void)
 void up_down(void)
 {
     HWND hWnd;
-    hWnd=CreateWindow("up_down","7 Up 7 Down",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd=CreateWindow("up_down","7 Up 7 Down",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Rules");
     SetMenu(hWnd,hMenu);
     AddControlsGame(hWnd);
@@ -1793,7 +1794,7 @@ void up_down(void)
 void stone_paper(void)
 {
     HWND hWnd;
-    hWnd=CreateWindow("stone_paper","Stone Paper",WS_OVERLAPPEDWINDOW| WS_VISIBLE,530,230,500,270,NULL,NULL,NULL,NULL);
+    hWnd=CreateWindow("stone_paper","Stone Paper",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Rules");
     SetMenu(hWnd,hMenu);
     MSG msg={0};
