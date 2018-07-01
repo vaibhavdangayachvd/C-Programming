@@ -41,7 +41,8 @@
          - Removed Unused Code
     v2.1 - Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
            Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
-           Minor Change : Maximize option removed
+           Minor Change : Maximize option removed(27/06/18)
+           Major Bug Fix : Default Name of super admin changed(removed underscore) to show menu items(01/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -741,7 +742,7 @@ LRESULT CALLBACK WindowProcedureAdmin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             root->parent=sentinel;
             root->id=users++;
             strcpy(root->password,"password");
-            strcpy(root->name,"super_admin");
+            strcpy(root->name,"SuperAdmin");
             root->coins=500;
             root->request=0;
             root->admin=true;
@@ -2020,7 +2021,7 @@ void start_check_db(void)
         root->parent=sentinel;
         root->id=users++;
         strcpy(root->password,"password");
-        strcpy(root->name,"super_admin");
+        strcpy(root->name,"SuperAdmin");
         root->coins=500;
         root->request=0;
         root->cashout=0;
