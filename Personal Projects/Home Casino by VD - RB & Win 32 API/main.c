@@ -43,9 +43,9 @@
            Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
            Minor Change : Maximize option removed(27/06/18)
            Major Bug Fix : Default Name of super admin changed(removed underscore) to show menu items(01/07/18)
-    v2.2 - Feature Add : Encryption Supported
-         - Updated first boot message
-         - Renamed database file to db.dll
+    v2.2 - Feature Add : Encryption Supported(03/07/18)
+         - Updated first boot message(03/07/18)
+         - Renamed database file to db.dll(03/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
