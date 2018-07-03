@@ -46,6 +46,7 @@
     v2.2 - Feature Add : Encryption Supported(03/07/18)
          - Updated first boot message(03/07/18)
          - Renamed database file to db.dll(03/07/18)
+         - Minor Change : Disabled annoying pop-ups while betting.
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -2521,14 +2522,14 @@ void check_bet(int amount,HWND hWnd)
     }
     if((amount>(user->coins))&&amount != 999)
     {
-        MessageBox(hWnd,"You cant bet more than you actually have.","Bet Error",MB_OK|MB_ICONEXCLAMATION);
+        //MessageBox(hWnd,"You cant bet more than you actually have.","Bet Error",MB_OK|MB_ICONEXCLAMATION);
         return;
     }
     if(amount==999)
     {
         if(bet_amount==0)
         {
-            MessageBox(hWnd,"Place Bet First","Reset",MB_OK|MB_ICONEXCLAMATION);
+            //MessageBox(hWnd,"Place Bet First","Reset",MB_OK|MB_ICONEXCLAMATION);
             return;
         }
         user->coins+=bet_amount;
@@ -2537,7 +2538,7 @@ void check_bet(int amount,HWND hWnd)
         SetWindowText(hBet,temp);
         sprintf(temp,"Coin Balance : %d",user->coins);
         SetWindowText(hCoins,temp);
-        MessageBox(hWnd,"Bet Reset Successful","Reset",MB_OK|MB_ICONINFORMATION);
+        //MessageBox(hWnd,"Bet Reset Successful","Reset",MB_OK|MB_ICONINFORMATION);
     }
     else
     {
