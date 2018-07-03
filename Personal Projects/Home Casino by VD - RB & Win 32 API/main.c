@@ -43,6 +43,9 @@
            Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
            Minor Change : Maximize option removed(27/06/18)
            Major Bug Fix : Default Name of super admin changed(removed underscore) to show menu items(01/07/18)
+    v2.2 - Feature Add : Encryption Supported
+         - Updated first boot message
+         - Renamed database file to db.dll
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -139,6 +142,9 @@ void create_leaderboard(tree_node *);//Create Leader board
 void insert_leader_board(char[],int);//Insert In Leader Board
 void show_leader_board(HWND);//Show leader board
 void free_list(void);//Free List
+void encrept(char[]);//Encrept Function
+void decrept(char[]);//Decrept Function
+
 //GUI Functions
 //Window Procedures
 //Home
@@ -2011,10 +2017,10 @@ void AddControlsUD(HWND hWnd)
     CreateWindow("button","7Down",WS_VISIBLE|WS_CHILD|SS_CENTER,320,80,90,20,hWnd,(HMENU)DOWN,NULL,NULL);
     CreateWindow("button","Roll Dice",WS_VISIBLE|WS_CHILD|SS_CENTER,270,110,90,20,hWnd,(HMENU)ROLL_DICE,NULL,NULL);
 }
-//----------------------------------Main Program Functions---------------------------------------
+//----------------------------------Back End Functions---------------------------------------
 void start_check_db(void)
 {
-    FILE *fp=fopen("database","r");
+    FILE *fp=fopen("db.dll","r");
     if(fp==NULL)
     {
         root=(tree_node*)malloc(sizeof(tree_node));
@@ -2031,7 +2037,7 @@ void start_check_db(void)
         root->color=black;
         clear_file();//Can be used to create new file
         reappend_file(root);
-        MessageBox(NULL,"Welcome to HOME Casino by VD\n\nYou are the Super Admin !!\nID : 0\nPassword : password\n\nClick Help on home page for more information.\n\nImportant Note : Please change password from Admin Panel as soon as possible to avoid any security issues.","Welcome",MB_OK);
+        MessageBox(NULL,"\t\t        Installation Successfull !!\n\nWelcome to HOME Casino by VD\n\nYou are the Super Admin !!\nID : 0\nPassword : password\n\nIn case you forget your password, delete db.dll from installation folder to hard reset casino.\nClick Help on home page for more information.\n\nImportant Note : Please change password from Admin Panel as soon as possible to avoid any security issues.","Readme",MB_OK);
     }
     else
     {
@@ -2044,19 +2050,21 @@ void load_from_file(void)
 {
 
     FILE *fp;
-    int id,coins,request,admin,cashout;
+    int id,coins,request,admin,cashout,i;
     char name[20],pass[20];
-    fp=fopen("database","r");
+    fp=fopen("db.dll","r");
     while(!feof(fp))
     {
         fscanf(fp,"%d %s %s %d %d %d %d",&id,name,pass,&coins,&request,&cashout,&admin);
+        decrept(name);
+        decrept(pass);
         if(id==-999)
             continue;
         if(admin)
-            create_new_user(id,name,pass,coins,request,cashout,true);
+            create_new_user((id-3)/1631,name,pass,(coins-3)/1631,(request-3)/1631,(cashout-3)/1631,true);
         else
-            create_new_user(id,name,pass,coins,request,cashout,false);
-        users = id+1;
+            create_new_user((id-3)/1631,name,pass,(coins-3)/1631,(request-3)/1631,(cashout-3)/1631,false);
+        users = (id-3)/1631+1;
     }
     fclose(fp);
 }
@@ -2064,8 +2072,8 @@ void load_from_file(void)
 void clear_file(void)
 {
     FILE *fp;
-    fp=fopen("database","w");
-    fprintf(fp,"%d %s %s %d %d %d %d\n",-999,"start","start",500,0,0,0);
+    fp=fopen("db.dll","w");
+    fprintf(fp,"%d %s %s %d %d %d %d\n",-999,"efefttt","ffcbbdfef",52466,342243,24342,0);
     fclose(fp);
 }
 //Reappend File
@@ -2081,8 +2089,13 @@ void reappend_file(tree_node *ptr)
 void append_to_file(int id,char name[],char pass[],int coins,int request,int cashout,int admin)
 {
     FILE *fp;
-    fp=fopen("database","a");
-    fprintf(fp,"%d %s %s %d %d %d %d\n",id,name,pass,coins,request,cashout,admin);
+    char name_buffer[30],pass_buffer[30];
+    strcpy(name_buffer,name);
+    strcpy(pass_buffer,pass);
+    encrept(name_buffer);
+    encrept(pass_buffer);
+    fp=fopen("db.dll","a");
+    fprintf(fp,"%d %s %s %d %d %d %d\n",id*1631+3,name_buffer,pass_buffer,coins*1631+3,request*1631+3,cashout*1631+3,admin);
     fclose(fp);
 }//Search User ID
 int search_userid(tree_node *ptr,char name[])
@@ -2637,5 +2650,23 @@ void free_list(void)
         head=head->next;
         free(head);
         head=temp;
+    }
+}
+//Encrept
+void encrept(char data[])
+{
+    int i;
+    for(i=0;data[i]!='\0';++i)
+    {
+        data[i]=data[i]-3;
+    }
+}
+//Decrept
+void decrept(char data[])
+{
+    int i;
+    for(i=0;data[i]!='\0';++i)
+    {
+        data[i]=data[i]+3;
     }
 }
