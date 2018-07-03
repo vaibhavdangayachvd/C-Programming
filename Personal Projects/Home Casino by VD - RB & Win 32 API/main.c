@@ -48,6 +48,7 @@
          - Renamed database file to db.dll(03/07/18)
          - Minor Change : Disabled annoying pop-ups while betting(03/07/18)
          - Changing Decision Possible Now While Betting(03/07/18)
+         - Minor Change(03/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -452,31 +453,21 @@ LRESULT CALLBACK WindowProcedureCreateId(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             }
             if(user->admin==true)
             {
-                if(user->id==0)
-                {
-                    create_new_user(users,name,pass,500,0,0,true);
-                    sprintf(name,"Admin Created !!\nID : %d",users-1);
-                    MessageBox(hWnd,name,"Message",MB_OK|MB_ICONINFORMATION);
-                    clear_file();
-                    reappend_file(root);
-                }
-                else
-                {
-                    MessageBox(hWnd,"Only Super Admin Can Create Admins","Message",MB_OK|MB_ICONEXCLAMATION);
-                }
-                DestroyWindow(hWnd);
-                break;
-            }
-            else
-            {
-                create_new_user(users,name,pass,500,0,0,false);
+                create_new_user(users,name,pass,500,0,0,true);
+                sprintf(name,"Admin Created !!\nID : %d",users-1);
+                MessageBox(hWnd,name,"Message",MB_OK|MB_ICONINFORMATION);
                 clear_file();
                 reappend_file(root);
-                sprintf(name,"User Created !!\nYour ID is %d\nRemember it!",users-1);
-                MessageBox(hWnd,name,"Message",MB_OK|MB_ICONINFORMATION);
                 DestroyWindow(hWnd);
                 break;
             }
+            create_new_user(users,name,pass,500,0,0,false);
+            clear_file();
+            reappend_file(root);
+            sprintf(name,"User Created !!\nYour ID is %d\nRemember it!",users-1);
+            MessageBox(hWnd,name,"Message",MB_OK|MB_ICONINFORMATION);
+            DestroyWindow(hWnd);
+            break;
         }
         break;
     case WM_CREATE:
@@ -733,8 +724,13 @@ LRESULT CALLBACK WindowProcedureAdmin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
                 MessageBox(hWnd,name,"Pending Requests",MB_OK|MB_ICONINFORMATION);
             break;
         case NEW_USER_ID:
-            DestroyWindow(hWnd);
-            create_id();
+            if(user->id)
+                MessageBox(hWnd,"Only Super Admin can add new admins.","Message",MB_OK|MB_ICONINFORMATION);
+            else
+            {
+                DestroyWindow(hWnd);
+                create_id();
+            }
             break;
         case RESET:
             if(user->id)
