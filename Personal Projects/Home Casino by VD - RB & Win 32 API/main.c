@@ -47,6 +47,7 @@
          - Updated first boot message(03/07/18)
          - Renamed database file to db.dll(03/07/18)
          - Minor Change : Disabled annoying pop-ups while betting(03/07/18)
+         - Changing Decision Possible Now While Betting(03/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -1287,8 +1288,6 @@ LRESULT CALLBACK WindowProcedureHeadTail(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case HEAD:
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag)
-                MessageBox(hWnd,"Toss The Coin","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
                 bet_flag=0;
@@ -1298,8 +1297,6 @@ LRESULT CALLBACK WindowProcedureHeadTail(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case TAIL:
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag)
-                MessageBox(hWnd,"Toss The Coin","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
                 bet_flag=0;
@@ -1402,8 +1399,6 @@ LRESULT CALLBACK WindowProcedureUpDown(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case UP:
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag)
-                MessageBox(hWnd,"Roll the dice","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
                 bet_flag=0;
@@ -1413,8 +1408,6 @@ LRESULT CALLBACK WindowProcedureUpDown(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case DOWN:
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag)
-                MessageBox(hWnd,"Roll the dice","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
                 bet_flag=0;
@@ -1532,39 +1525,30 @@ LRESULT CALLBACK WindowProcedureStonePaper(HWND hWnd,UINT msg,WPARAM wp,LPARAM l
             break;
         //Stone Paper Cases
         case STONE:
-            GetWindowText(hName,output,10);
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag&&strcmp(output,"Same"))
-                MessageBox(hWnd,"Click Play","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
-                bet_flag=0;
                 SetWindowText(hPass,"Stone");
+                bet_flag=0;
             }
             break;
         case PAPER:
-           GetWindowText(hName,output,10);
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag&&strcmp(output,"Same"))
-                MessageBox(hWnd,"Click Play","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
-                bet_flag=0;
                 SetWindowText(hPass,"Paper");
+                bet_flag=0;
             }
             break;
         case SCISSOR:
-            GetWindowText(hName,output,10);
             if(!bet_amount)
                 MessageBox(hWnd,"Place bet first","Message",MB_OK|MB_ICONEXCLAMATION);
-            else if(!bet_flag&&strcmp(output,"Same"))
-                MessageBox(hWnd,"Click Play","Message",MB_OK|MB_ICONEXCLAMATION);
             else
             {
-                bet_flag=0;
                 SetWindowText(hPass,"Scissor");
+                bet_flag=0;
             }
             break;
         case PLAY:
