@@ -46,7 +46,7 @@
     v2.2 - Feature Add : Encryption Supported(03/07/18)
          - Updated first boot message(03/07/18)
          - Renamed database file to db.dll(03/07/18)
-         - Minor Change : Disabled annoying pop-ups while betting.
+         - Minor Change : Disabled annoying pop-ups while betting(03/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
