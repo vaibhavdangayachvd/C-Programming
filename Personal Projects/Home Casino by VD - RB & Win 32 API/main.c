@@ -49,6 +49,7 @@
          - Minor Change : Disabled annoying pop-ups while betting(03/07/18)
          - Changing Decision Possible Now While Betting(03/07/18)
          - Minor Change(03/07/18)
+    v2.3 - Major Bug Fix : Give coins conflict with global user variable allowing user to get admin access through admin panel(06/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -1033,6 +1034,7 @@ LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 }
 LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 {
+    tree_node *user;
     char *name,temp[30];
     int id,coins;
     switch(msg)
