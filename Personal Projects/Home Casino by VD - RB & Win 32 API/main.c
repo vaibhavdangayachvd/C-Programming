@@ -51,6 +51,7 @@
          - Minor Change(03/07/18)
     v2.3 - Major Bug Fix : Give coins conflict with global user variable allowing user to get admin access through admin panel(06/07/18)
          - Show User Type in Super admin's user list(06/07/18)
+         - Feature Add - Users can buy coins from their cash amount(06/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -89,6 +90,7 @@
 #define PAPER 30
 #define SCISSOR 31
 #define LEADER 32
+#define BUY 33
 typedef enum{false,true} boole;//For Admin status
 //Red-Black Tree Structure
 struct rb_tree
@@ -164,6 +166,7 @@ LRESULT CALLBACK WindowProcedureCasino(HWND,UINT,WPARAM,LPARAM);//Casino
 LRESULT CALLBACK WindowProcedureReq(HWND,UINT,WPARAM,LPARAM);//Request Coins
 LRESULT CALLBACK WindowProcedureCashout(HWND,UINT,WPARAM,LPARAM);//Cashout
 LRESULT CALLBACK WindowProcedureChangePw(HWND,UINT,WPARAM,LPARAM);//Change Password also for admin
+LRESULT CALLBACK WindowProcedureBuyCoins(HWND,UINT,WPARAM,LPARAM);//Buy Coins
 //Admin Menu
 LRESULT CALLBACK WindowProcedureGiveCoins(HWND,UINT,WPARAM,LPARAM);//Give Coins
 LRESULT CALLBACK WindowProcedureDeleteUser(HWND,UINT,WPARAM,LPARAM);//Delete User
@@ -187,6 +190,7 @@ void AddControlsCasino(HWND);//Control for casino
 void AddControlsChangePw(HWND);//Control for change pw also for admin
 void AddControlsReq(HWND);//Control for request coins
 void AddControlsCashout(HWND);//Control for cashout
+void AddControlsBuyCoins(HWND);//Control for buy coins
 //Admin Menu Controls
 void AddControlsGiveCoins(HWND);//Give Coins
 void AddControlsDeleteUser(HWND);//Delete User
@@ -210,6 +214,7 @@ void change_pw(void);//Change PW also for admin
 void cashout(void);//Cashout
 void req_coins(void);//Request Coins
 void play_casino(void);//Enter Casino
+void buy_coins(void);//Buy Coins
 //admin panel
 void give_coins(void);//give coins
 void delete_user(void);//Delete User
@@ -290,6 +295,15 @@ int WINAPI WinMain(HINSTANCE hInst,HINSTANCE hPrevInst,LPSTR args,int ncmdshow)
     casino.lpszClassName= "casino";
     casino.lpfnWndProc=WindowProcedureCasino;
     if(!RegisterClass(&casino))
+        return -1;
+    //Buy Coins Class
+    WNDCLASS buy_coins={0};
+    buy_coins.hbrBackground = (HBRUSH)COLOR_WINDOW;
+    buy_coins.hCursor=LoadCursor(NULL,IDC_ARROW);
+    buy_coins.hInstance=hInst;
+    buy_coins.lpszClassName= "buy_coins";
+    buy_coins.lpfnWndProc=WindowProcedureBuyCoins;
+    if(!RegisterClass(&buy_coins))
         return -1;
     //ChangePW class
     WNDCLASS change_pw={0};
@@ -616,6 +630,15 @@ LRESULT CALLBACK WindowProcedureUser(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case SHOW_HELP:
             MessageBox(hWnd,"Users will get bonus 10 coins on each login.\nIf you want more coins you can request from admin or buy from him directly.\n","Free Coins",MB_OK|MB_ICONINFORMATION);
                 break;
+        case BUY:
+            if(user->cashout<500)
+                MessageBox(hWnd,"You don't have enough cash balance in your account.\nMinimum : 500","Buy Coins",MB_OK|MB_ICONINFORMATION);
+            else
+            {
+                DestroyWindow(hWnd);
+                buy_coins();
+            }
+            break;
         case FILE_MENU_EXIT:
             DestroyWindow(hWnd);
             break;
@@ -1023,6 +1046,71 @@ LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         break;
     case WM_CREATE:
         AddControlsCashout(hWnd);
+        AddMenusUni(hWnd);
+        break;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        user_panel();
+        break;
+    default:
+        return DefWindowProc(hWnd,msg,wp,lp);
+    }
+}
+LRESULT CALLBACK WindowProcedureBuyCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
+{
+    char temp[30];
+    int coins;
+    switch(msg)
+    {
+    case WM_COMMAND:
+        switch(wp)
+        {
+        case FILE_MENU_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        case CLEAR:
+            SetWindowText(hName,"");
+            SetWindowText(hPass,"");
+            break;
+        case BUY:
+            GetWindowText(hPass,temp,30);
+            if(!strcmp(temp,""))
+            {
+                MessageBox(hWnd,"Enter Coin Amount","Message",MB_OK|MB_ICONEXCLAMATION);
+                break;
+            }
+            else if(!isdigit(temp[0]))
+            {
+                MessageBox(hWnd,"Enter numeric value","Message",MB_OK|MB_ICONEXCLAMATION);
+                SetWindowText(hPass,"");
+                break;
+            }
+            coins = atoi(temp);
+            if(coins>user->cashout)
+            {
+                MessageBox(hWnd,"Transction Failed !!\nReason : Insufficient Cash","Message",MB_OK|MB_ICONEXCLAMATION);
+                SetWindowText(hPass,"");
+                break;
+            }
+            else if(coins<500)
+            {
+                MessageBox(hWnd,"Transction Failed !!\nReason : Minimum buy amount 500","Message",MB_OK|MB_ICONEXCLAMATION);
+                SetWindowText(hPass,"");
+                break;
+            }
+            user->cashout -= coins;
+            user->coins += coins;
+            clear_file();
+            reappend_file(root);
+            MessageBox(hWnd,"Buy Successful","Message",MB_OK|MB_ICONINFORMATION);
+            sprintf(temp,"%d",user->cashout);
+            SetWindowText(hName,temp);
+            SetWindowText(hPass,"");
+            break;
+        }
+        break;
+    case WM_CREATE:
+        AddControlsBuyCoins(hWnd);
         AddMenusUni(hWnd);
         break;
     case WM_DESTROY:
@@ -1665,6 +1753,7 @@ void user_panel(void)
     HWND hWnd;
     hWnd = CreateWindow("user","User Panel",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Free Coins");
+    AppendMenu(hMenu,MF_STRING,BUY,"Buy Coins");
     SetMenu(hWnd,hMenu);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
@@ -1696,6 +1785,16 @@ void change_pw(void)
 void cashout(void)
 {
     CreateWindow("cashout","Cashout",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
+    MSG msg={0};
+    while(GetMessage(&msg,NULL,NULL,NULL))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+void buy_coins(void)
+{
+    CreateWindow("buy_coins","Buy Coins",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
     {
@@ -1930,6 +2029,18 @@ void AddControlsCashout(HWND hWnd)
     CreateWindow("static","Enter Amount :-",WS_VISIBLE|WS_CHILD,100,80,150,20,hWnd,NULL,NULL,NULL);
     hName = CreateWindow("edit","",WS_VISIBLE|WS_CHILD|WS_BORDER,270,80,110,20,hWnd,NULL,NULL,NULL);
     CreateWindow("button","Cashout",WS_VISIBLE|WS_CHILD|SS_CENTER,200,130,100,20,hWnd,(HMENU)COUT,NULL,NULL);
+}
+void AddControlsBuyCoins(HWND hWnd)
+{
+    char amount[15];
+    sprintf(amount,"%d",user->cashout);
+    CreateWindow("static","Here You Can Buy Coins",WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,110,10,260,20,hWnd,NULL,NULL,NULL);
+    CreateWindow("static","Cash Balance : ",WS_VISIBLE|WS_CHILD,170,50,150,20,hWnd,NULL,NULL,NULL);
+    hName = CreateWindow("static",amount,WS_VISIBLE|WS_CHILD,280,50,110,20,hWnd,NULL,NULL,NULL);
+    CreateWindow("static","Enter Amount :-",WS_VISIBLE|WS_CHILD,100,90,150,20,hWnd,NULL,NULL,NULL);
+    hPass = CreateWindow("edit","",WS_VISIBLE|WS_CHILD|WS_BORDER,270,90,110,20,hWnd,NULL,NULL,NULL);
+    CreateWindow("button","Buy",WS_VISIBLE|WS_CHILD|SS_CENTER,260,140,100,20,hWnd,(HMENU)BUY,NULL,NULL);
+    CreateWindow("button","Clear",WS_VISIBLE|WS_CHILD|SS_CENTER,140,140,100,20,hWnd,(HMENU)CLEAR,NULL,NULL);
 }
 void AddControlsGiveCoins(HWND hWnd)
 {
