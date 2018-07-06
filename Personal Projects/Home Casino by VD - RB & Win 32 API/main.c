@@ -50,6 +50,7 @@
          - Changing Decision Possible Now While Betting(03/07/18)
          - Minor Change(03/07/18)
     v2.3 - Major Bug Fix : Give coins conflict with global user variable allowing user to get admin access through admin panel(06/07/18)
+         - Show User Type in Super admin's user list(06/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -695,7 +696,7 @@ LRESULT CALLBACK WindowProcedureAdmin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             change_pw();
             break;
         case LIST:
-            name = (char *)malloc(users*80);
+            name = (char *)malloc(sizeof(char)*users*100);
             *name='\0';
             if(user->id==0)
             {
@@ -716,7 +717,7 @@ LRESULT CALLBACK WindowProcedureAdmin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             free(name);
             break;
         case REQ:
-            name = (char *)malloc(users*80);
+            name = (char *)malloc(sizeof(char)*users*80);
             *name='\0';
             pending_req(root,name);
             if(!strcmp(name,""))
@@ -1034,7 +1035,7 @@ LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 }
 LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 {
-    tree_node *user;
+    tree_node *receiver;
     char *name,temp[30];
     int id,coins;
     switch(msg)
@@ -1076,20 +1077,20 @@ LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp
                 break;
             }
             coins = atoi(temp);
-            user=find_user_node(id);
-            if(user==sentinel)
+            receiver=find_user_node(id);
+            if(receiver==sentinel)
             {
                 MessageBox(hWnd,"User not found","Message",MB_OK|MB_ICONEXCLAMATION);
                 SetWindowText(hName,"");
                 SetWindowText(hPass,"");
                 break;
             }
-            user->coins += coins;
-            if(user->request)
+            receiver->coins += coins;
+            if(receiver->request)
             {
-                user->request-=coins;
-                if(user->request<0)
-                    user->request=0;
+                receiver->request-=coins;
+                if(receiver->request<0)
+                    receiver->request=0;
             }
             clear_file();
             reappend_file(root);
@@ -1098,28 +1099,17 @@ LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp
             SetWindowText(hPass,"");
             break;
         case LIST:
-            name = (char *)malloc(users*80);
+            name = (char *)malloc(sizeof(char)*users*100);
             *name='\0';
-            if(user->id==0)
-            {
-                list_users(root,1,name);
-                if(!strcmp(name,""))
-                    MessageBox(hWnd,"List Empty","User list",MB_OK|MB_ICONINFORMATION);
-                else
-                    MessageBox(hWnd,name,"User List",MB_OK|MB_ICONINFORMATION);
-            }
+            list_users(root,0,name);
+            if(!strcmp(name,""))
+                MessageBox(hWnd,"List Empty","User list",MB_OK|MB_ICONINFORMATION);
             else
-            {
-                list_users(root,0,name);
-                if(!strcmp(name,""))
-                    MessageBox(hWnd,"List Empty","User list",MB_OK|MB_ICONINFORMATION);
-                else
-                    MessageBox(hWnd,name,"User List",MB_OK|MB_ICONINFORMATION);
-            }
+                MessageBox(hWnd,name,"User List",MB_OK|MB_ICONINFORMATION);
             free(name);
             break;
         case REQ:
-            name = (char *)malloc(users*80);
+            name = (char *)malloc(sizeof(char)*users*80);
             *name='\0';
             pending_req(root,name);
             if(!strcmp(name,""))
@@ -2288,14 +2278,17 @@ tree_node *find_admin_node(int id)
 //List Users
 void list_users(tree_node *ptr,int super_admin,char *ch)
 {
-    char temp[80];
+    char temp[100];
     if(ptr==sentinel)
         return;
     list_users(ptr->lchild,super_admin,ch);
     if(super_admin==true)
     {
-         sprintf(temp,"User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
-         strcat(ch,temp);
+        if(ptr->admin == true)
+            sprintf(temp,"User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\nType : Admin\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
+        else
+            sprintf(temp,"User ID : %d\nName : %s\nPassword : %s\nCoin Balance : %d\nType : User\n\n",ptr->id,ptr->name,ptr->password,ptr->coins);
+        strcat(ch,temp);
     }
     else
     {
