@@ -48,10 +48,11 @@
          - Renamed database file to db.dll(03/07/18)
          - Minor Change : Disabled annoying pop-ups while betting(03/07/18)
          - Changing Decision Possible Now While Betting(03/07/18)
-         - Minor Change(03/07/18)
+         - Minor Change : Normal admins cant open create admin option now(03/07/18)
     v2.3 - Major Bug Fix : Give coins conflict with global user variable allowing user to get admin access through admin panel(06/07/18)
          - Show User Type in Super admin's user list(06/07/18)
          - Feature Add - Users can buy coins from their cash amount(06/07/18)
+         - Minor Change : Multiple cashouts now possible in a single session(08/07/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -1000,7 +1001,7 @@ LRESULT CALLBACK WindowProcedureCasino(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
 {
     int coins;
-    char name[10];
+    char name[30];
     switch(msg)
     {
     case WM_COMMAND:
@@ -1040,7 +1041,9 @@ LRESULT CALLBACK WindowProcedureCashout(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             clear_file();
             reappend_file(root);
             MessageBox(hWnd,"Cashout Successful !! Collect Cash from Counter","Message",MB_OK|MB_ICONINFORMATION);
-            DestroyWindow(hWnd);
+            sprintf(name,"Coin Balance : %d",user->coins);
+            SetWindowText(hName,"");
+            SetWindowText(hPass,name);
             break;
         }
         break;
@@ -2025,7 +2028,7 @@ void AddControlsCashout(HWND hWnd)
     char coin_bal[30];
     sprintf(coin_bal,"Coin Balance : %d",user->coins);
     CreateWindow("static","Here You Can Cashout Coins",WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,110,10,260,20,hWnd,NULL,NULL,NULL);
-    CreateWindow("static",coin_bal,WS_VISIBLE|WS_CHILD|WS_BORDER|SS_CENTER,250,40,210,20,hWnd,NULL,NULL,NULL);
+    hPass = CreateWindow("static",coin_bal,WS_VISIBLE|WS_CHILD|SS_CENTER,250,40,210,20,hWnd,NULL,NULL,NULL);
     CreateWindow("static","Enter Amount :-",WS_VISIBLE|WS_CHILD,100,80,150,20,hWnd,NULL,NULL,NULL);
     hName = CreateWindow("edit","",WS_VISIBLE|WS_CHILD|WS_BORDER,270,80,110,20,hWnd,NULL,NULL,NULL);
     CreateWindow("button","Cashout",WS_VISIBLE|WS_CHILD|SS_CENTER,200,130,100,20,hWnd,(HMENU)COUT,NULL,NULL);
