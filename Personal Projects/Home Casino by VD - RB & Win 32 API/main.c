@@ -40,9 +40,9 @@
          - Some Major and Minor bug fixes
          - Removed Unused Code
     v2.1 - Feature Add : Leaderboard for Top Cashouts using Sorted Linked List(23/06/18)
-           Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
-           Minor Change : Maximize option removed(27/06/18)
-           Major Bug Fix : Default Name of super admin changed(removed underscore) to show menu items(01/07/18)
+         -  Major Bug Fix : Users with no cashout dont appear in leaderboard(23/06/18)
+         -  Minor Change : Maximize option removed(27/06/18)
+         -  Major Bug Fix : Default Name of super admin changed(removed underscore) to show menu items(01/07/18)
     v2.2 - Feature Add : Encryption Supported(03/07/18)
          - Updated first boot message(03/07/18)
          - Renamed database file to db.dll(03/07/18)
@@ -53,6 +53,10 @@
          - Show User Type in Super admin's user list(06/07/18)
          - Feature Add - Users can buy coins from their cash amount(06/07/18)
          - Minor Change : Multiple cashouts now possible in a single session(08/07/18)
+    v2.4 - Feature Add - Users can send coins to other users from their coins amount(11/07/18)
+         - Minor Change : Change Exclaimation to Information popop in reset casino for normal admins(11/07/18)
+         - Fixed Typo in Encrypt and Decrypt Function Name(11/07/18)
+         - Minor Bug Fix : Fixed password not clear when user not found(23/06/18)
 */
 //Preprocessor Directives
 #include<windows.h>
@@ -150,8 +154,8 @@ void create_leaderboard(tree_node *);//Create Leader board
 void insert_leader_board(char[],int);//Insert In Leader Board
 void show_leader_board(HWND);//Show leader board
 void free_list(void);//Free List
-void encrept(char[]);//Encrept Function
-void decrept(char[]);//Decrept Function
+void encrypt(char[]);//Encrypt Function
+void decrypt(char[]);//Decrypt Function
 
 //GUI Functions
 //Window Procedures
@@ -536,6 +540,7 @@ LRESULT CALLBACK WindowProcedureLogin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             {
                 MessageBox(hWnd,"User not found !!","Message",MB_OK|MB_ICONEXCLAMATION);
                 SetWindowText(hName,"");
+                SetWindowText(hPass,"");
                 break;
             }
             else if(user==sentinel)
@@ -583,6 +588,7 @@ LRESULT CALLBACK WindowProcedureLogin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
             {
                 MessageBox(hWnd,"User not found !!","Message",MB_OK|MB_ICONEXCLAMATION);
                 SetWindowText(hName,"");
+                SetWindowText(hPass,"");
                 break;
             }
             if(user==sentinel)
@@ -631,6 +637,15 @@ LRESULT CALLBACK WindowProcedureUser(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case SHOW_HELP:
             MessageBox(hWnd,"Users will get bonus 10 coins on each login.\nIf you want more coins you can request from admin or buy from him directly.\n","Free Coins",MB_OK|MB_ICONINFORMATION);
                 break;
+        case GIVE_COINS:
+            if(user->coins<500)
+                MessageBox(hWnd,"You don't have enough coin balance in your account.\nMinimum : 500","Send Coins",MB_OK|MB_ICONINFORMATION);
+            else
+            {
+                DestroyWindow(hWnd);
+                give_coins();
+            }
+            break;
         case BUY:
             if(user->cashout<500)
                 MessageBox(hWnd,"You don't have enough cash balance in your account.\nMinimum : 500","Buy Coins",MB_OK|MB_ICONINFORMATION);
@@ -761,7 +776,7 @@ LRESULT CALLBACK WindowProcedureAdmin(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp)
         case RESET:
             if(user->id)
             {
-                MessageBox(hWnd,"Only Super Admin Can Perform Reset","Reset Casino",MB_OK|MB_ICONEXCLAMATION);
+                MessageBox(hWnd,"Only Super Admin Can Perform Reset","Reset Casino",MB_OK|MB_ICONINFORMATION);
                 break;
             }
             if((MessageBox(hWnd,"Are you sure you want to reset the whole casino?","Reset Casino",MB_YESNO|MB_ICONQUESTION))!=IDYES)
@@ -1176,16 +1191,46 @@ LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp
                 SetWindowText(hPass,"");
                 break;
             }
-            receiver->coins += coins;
-            if(receiver->request)
+            if(!user->admin)
             {
-                receiver->request-=coins;
-                if(receiver->request<0)
-                    receiver->request=0;
+                if(user==receiver)
+                {
+                    MessageBox(hWnd,"Transction Failed !!\nReason : You can't send coins to yourself","Message",MB_OK|MB_ICONEXCLAMATION);
+                    SetWindowText(hName,"");
+                    SetWindowText(hPass,"");
+                    break;
+                }
+                else if(coins>user->coins)
+                {
+                    MessageBox(hWnd,"Transction Failed !!\nReason : Insufficient Coins","Message",MB_OK|MB_ICONEXCLAMATION);
+                    SetWindowText(hPass,"");
+                    break;
+                }
+                else if(coins<500)
+                {
+                    MessageBox(hWnd,"Transction Failed !!\nReason : Minimum send amount 500","Message",MB_OK|MB_ICONEXCLAMATION);
+                    SetWindowText(hPass,"");
+                    break;
+                }
+                user->coins -= coins;
+                receiver->coins += coins;
+                clear_file();
+                reappend_file(root);
+                MessageBox(hWnd,"Send Successful Successful","Message",MB_OK|MB_ICONINFORMATION);
             }
-            clear_file();
-            reappend_file(root);
-            MessageBox(hWnd,"Coins Transferred","Message",MB_OK|MB_ICONINFORMATION);
+            else
+            {
+                receiver->coins += coins;
+                if(receiver->request)
+                {
+                    receiver->request-=coins;
+                    if(receiver->request<0)
+                        receiver->request=0;
+                }
+                clear_file();
+                reappend_file(root);
+                MessageBox(hWnd,"Coins Transferred","Message",MB_OK|MB_ICONINFORMATION);
+            }
             SetWindowText(hName,"");
             SetWindowText(hPass,"");
             break;
@@ -1212,11 +1257,17 @@ LRESULT CALLBACK WindowProcedureGiveCoins(HWND hWnd,UINT msg,WPARAM wp,LPARAM lp
         break;
     case WM_CREATE:
         AddControlsGiveCoins(hWnd);
-        AddMenusAdmin(hWnd);
+        if(user->admin)
+            AddMenusAdmin(hWnd);
+        else
+            AddMenusUni(hWnd);
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
-        admin_panel();
+        if(user->admin)
+            admin_panel();
+        else
+            user_panel();
         break;
     default:
         return DefWindowProc(hWnd,msg,wp,lp);
@@ -1757,6 +1808,7 @@ void user_panel(void)
     hWnd = CreateWindow("user","User Panel",WS_OVERLAPPED | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION,530,230,500,270,NULL,NULL,NULL,NULL);
     AppendMenu(hMenu,MF_STRING,SHOW_HELP,"Free Coins");
     AppendMenu(hMenu,MF_STRING,BUY,"Buy Coins");
+    AppendMenu(hMenu,MF_STRING,GIVE_COINS,"Send Coins");
     SetMenu(hWnd,hMenu);
     MSG msg={0};
     while(GetMessage(&msg,NULL,NULL,NULL))
@@ -2143,8 +2195,8 @@ void load_from_file(void)
     while(!feof(fp))
     {
         fscanf(fp,"%d %s %s %d %d %d %d",&id,name,pass,&coins,&request,&cashout,&admin);
-        decrept(name);
-        decrept(pass);
+        decrypt(name);
+        decrypt(pass);
         if(id==-999)
             continue;
         if(admin)
@@ -2179,8 +2231,8 @@ void append_to_file(int id,char name[],char pass[],int coins,int request,int cas
     char name_buffer[30],pass_buffer[30];
     strcpy(name_buffer,name);
     strcpy(pass_buffer,pass);
-    encrept(name_buffer);
-    encrept(pass_buffer);
+    encrypt(name_buffer);
+    encrypt(pass_buffer);
     fp=fopen("db.dll","a");
     fprintf(fp,"%d %s %s %d %d %d %d\n",id*1631+3,name_buffer,pass_buffer,coins*1631+3,request*1631+3,cashout*1631+3,admin);
     fclose(fp);
@@ -2743,7 +2795,7 @@ void free_list(void)
     }
 }
 //Encrept
-void encrept(char data[])
+void encrypt(char data[])
 {
     int i;
     for(i=0;data[i]!='\0';++i)
@@ -2752,7 +2804,7 @@ void encrept(char data[])
     }
 }
 //Decrept
-void decrept(char data[])
+void decrypt(char data[])
 {
     int i;
     for(i=0;data[i]!='\0';++i)
