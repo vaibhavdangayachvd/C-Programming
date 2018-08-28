@@ -14,6 +14,7 @@
        Major Bugfix :- Wrong extra amount passed to distribute function.
        Minor Bugfix :- Reset was not working properly.
                      - Removed extra parameter in set entry function.
+                     - Reset Fixed
 */
 //Preprocessor Directives
 #include<stdio.h>
@@ -47,7 +48,7 @@ void set_group_activity(node *head);//Set Inter group activity
 node *find_user_node(node *head,char ch[]);//Find node from name
 void calculate(node *head);//Calculate Result
 void distri_extra(node *head,float extra,int count);//Recursively Distribute Extra Amount
-void reset(node *head);//Reset Casino
+node * reset(node *head);//Reset Casino
 int main()
 {
     node *head=NULL;
@@ -115,18 +116,14 @@ int main()
         case '5':
             printf("\n\n\n\n\n\n\n\t\t\t\tPress Enter to Reset or Backspace to go Back\n");
             option = getch();
-            if(option == 8)
-                break;
-            else
+            if(option != 8)
             {
-                reset(head);
-                free(head);
-                head=NULL;
+                head = reset(head);
                 entry = 0,per_tot=0;
                 printf("\n\nReset Successfull !!");
                 hold_screen();
-                break;
             }
+            break;
         case 8 :
             return 0;
         }
@@ -186,6 +183,7 @@ void calculate(node *head)
         ptr=ptr->next;
     }
     ptr=head;
+    //If No Entry Fee
     if(entry==0)
     {
         while(ptr!=NULL)
@@ -194,6 +192,7 @@ void calculate(node *head)
             ptr=ptr->next;
         }
     }
+    //If Entry Fee
     else
     {
         while(ptr!=NULL)
@@ -212,9 +211,9 @@ void calculate(node *head)
         //Distribute Extra Balance in other members who spent more than entry
         distri_extra(head,extra,count);
     }
+    //Print Result
     ptr = head;
     printf("\t\t\tShare of Each Member :- \n\n");
-    //Print Result
     while(ptr!=NULL)
     {
         printf("%s - Rs. %.2f\n",ptr->name,ptr->total);
@@ -259,15 +258,17 @@ void distri_extra(node *head,float extra,int count)
     //if balance is accumulated try again with updated extra balance and count
     distri_extra(head,extra,count);
 }
-void reset(node *head)
+node * reset(node *head)
 {
     node *ptr=head;
-    while(head->next != NULL)
+    while(head!=NULL)
     {
         ptr=head;
         head=head->next;
+        ptr->per=0,ptr->grp=0,ptr->total=0;
         free(ptr);
     }
+    return head;
 }
 node *find_user_node(node *head,char ch[])
 {
