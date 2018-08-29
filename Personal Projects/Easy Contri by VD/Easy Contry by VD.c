@@ -4,6 +4,8 @@
 
     @author Vaibhav As VD
     @version 1.0 (28/08/18 3:10AM)
+    @version 1.2 (29/08/18 11:41PM)
+
 
     Change log :-
     v1 - Initial Release
@@ -15,6 +17,19 @@
        Minor Bugfix :- Reset was not working properly.
                      - Removed extra parameter in set entry function.
                      - Reset Fixed
+
+  v1.2 - Minor and Major Bug Fixes
+       - Crash Fixes
+       - Better error handling
+       - Reliability Changes
+       - Allow space in names
+       - Possibility Re-Calculate any number of times with different values of entry and group activity
+       - Possible to see names of all members while typing name
+       - Feature Add - Complete Edit Menu
+                     - Change Bill Amount/Entry Fee
+                     - Display User List
+                     - Remove Group activity
+                     - Add/Remove/Edit Members Info
 */
 //Preprocessor Directives
 #include<stdio.h>
@@ -38,17 +53,23 @@ struct details
 };
 typedef struct details node;
 //Global Variables
-float entry,per_tot=0,grp_tot=0,bill_amt=0;
+float entry=0,per_tot=0,grp_tot=0,bill_amt=0,sub_grp_total=0;
 int members = 0;
 //UD Functions
 void hold_screen(void);//Hold Screen
 void create_list(node *head);//Create List
 void set_entry_fee(void);//Set Entry Fee
-void set_group_activity(node *head);//Set Inter group activity
+void set_group_activity(node *head,int flag);//Set Inter group activity 1- add;0 - remove
 node *find_user_node(node *head,char ch[]);//Find node from name
 void calculate(node *head);//Calculate Result
 void distri_extra(node *head,float extra,int count);//Recursively Distribute Extra Amount
-node * reset(node *head);//Reset Casino
+node*reset(node *head);//Reset Casino
+void display_list(node *head,int per);//Display List with or without personal amt
+//Edit Menu Functions
+void open_edit_menu(node **head);//Open edit menu
+void add_new_member(node *head);//Add Member
+node *remove_member(node *head);//Remove Member
+void edit_member_info(node *head);//Edit member info
 int main()
 {
     node *head=NULL;
@@ -57,7 +78,7 @@ int main()
     {
         CLS;
         printf("\t\t\tWelcome to Easy Conti by VD\n\n");
-        printf("Choose Option :-\n1 - Create List\n2 - Set Entry Fee (optional)\n3 - Inter group payments (optional)\n4 - Calculate\n5 - Reset\n\tBackspace - END\n");
+        printf("Choose Option :-\n1 - Create List\n2 - Display List\n3 - Set Entry Fee (optional)\n4 - Inter Group Payments (optional)\n5 - Open Edit Menu\n6 - Calculate Contribution\n7 - Reset\n\tBackspace - END\n");
         option = getch();
         CLS;
         switch(option)
@@ -68,26 +89,35 @@ int main()
             else
             {
                 printf("\t\t\tHere You Can Create List\n\n");
-                head = (node*)malloc(sizeof(node));
-                create_list(head);
-                jump:
-                printf("\tEnter Final Bill Amount : ");
-                scanf("%f",&bill_amt);
-                if(bill_amt<per_tot)
+                printf("Enter number of people in your group : ");
+                scanf(" %d",&members);
+                printf("\n");
+                if(members<=0)
+                    printf("Wrong Amount !!");
+                else
                 {
-                    printf("  Wrong Bill Amount !!\n");
-                    goto jump;
+                    head = (node*)malloc(sizeof(node));
+                    create_list(head);
                 }
-                grp_tot=bill_amt-per_tot;//Set Group Total
-                printf("\n\nList Successfully Created !!");
             }
             hold_screen();
             break;
         case '2':
             if(head==NULL)
                 printf("Create List First !!");
+            else
+            {
+                printf("\t\t\tHere you can see details of members\n\n");
+                printf("Member name followed by their personal expenditure :-\n\n");
+                display_list(head,1);
+            }
+            hold_screen();
+            break;
+        case '3':
+            if(head==NULL)
+                printf("Create List First !!");
             else if(entry)
-                printf("Entry Fee Already Set !!");
+                printf("Entry Fee Already Set !! Goto Edit Menu to change");
             else
             {
                 printf("\t\t\tHere You Can Set Entry Fee\n\n");
@@ -95,31 +125,39 @@ int main()
             }
             hold_screen();
             break;
-        case '3':
+        case '4':
             if(head==NULL)
                 printf("Create List First !!");
             else
             {
                 printf("\t\t\tHere You Can Set Group Activity\n\n");
-                set_group_activity(head);
-                printf("\n\n\tGroup Activity Set !!");
+                set_group_activity(head,1);
             }
             hold_screen();
             break;
-        case '4':
+        case '5':
+            if(head==NULL)
+            {
+                printf("Create List First !!");
+                hold_screen();
+            }
+            else
+                open_edit_menu(&head);
+            break;
+        case '6':
             if(head==NULL)
                 printf("Create List First !!");
             else
                 calculate(head);
             hold_screen();
             break;
-        case '5':
+        case '7':
             printf("\n\n\n\n\n\n\n\t\t\t\tPress Enter to Reset or Backspace to go Back\n");
             option = getch();
             if(option != 8)
             {
                 head = reset(head);
-                entry = 0,per_tot=0;
+                entry = 0,per_tot=0,members=0,grp_tot=0,bill_amt=0,sub_grp_total=0;
                 printf("\n\nReset Successfull !!");
                 hold_screen();
             }
@@ -137,18 +175,17 @@ void hold_screen()
 void create_list(node *head)
 {
     int i;
-    printf("Enter number of people in your group : ");
-    scanf("%d",&members);
-    printf("\n");
     for(i=0;i<members;++i)
     {
         printf("Enter name of member %d : ",i+1);
-        scanf("%s",head->name);
+        scanf(" %[^\n]",head->name);
+        head->per=0;
         printf("Enter personal expenditure of %s : ",head->name);
-        scanf("%f",&head->per);
+        scanf(" %f",&head->per);
         head->total=0;
-        printf("\n");
+        head->grp=0;
         per_tot+=head->per;
+        printf("\n");
         //If last member set next to null else allot memory
         if(i == members-1)
             head->next=NULL;
@@ -156,20 +193,35 @@ void create_list(node *head)
             head->next = (node*)malloc(sizeof(node));
         head=head->next;
     }
+    jump:
+    printf("\tEnter Final Bill Amount : ");
+    scanf(" %f",&bill_amt);
+    if(bill_amt<per_tot)
+    {
+        printf("  Wrong Bill Amount !!\n");
+        goto jump;
+    }
+    grp_tot=bill_amt-per_tot;//Set Group Total
+    printf("\nList Successfully Created !!");
 }
 void set_entry_fee(void)
 {
-    printf("Enter entry fee : ");
+    printf("Enter entry fee (0 to continue without setting entry fee): ");
     jump:
-    scanf("%f",&entry);
+    scanf(" %f",&entry);
     if(entry>bill_amt)
     {
         printf("Wrong Amount !!");
         goto jump;
     }
-    //Treat entry fee as group activity
-    grp_tot+=entry;
-    printf("\n\t\tEntry Fee Included !!");
+    else if(entry <= 0)
+        printf("Empty amount set !!");
+    else
+    {
+        //Treat entry fee as group activity
+        grp_tot+=entry;
+        printf("\n\t\tEntry Fee Included !!");
+    }
 }
 void calculate(node *head)
 {
@@ -217,6 +269,8 @@ void calculate(node *head)
     while(ptr!=NULL)
     {
         printf("%s - Rs. %.2f\n",ptr->name,ptr->total);
+        ptr->grp-=(grp_tot/members);
+        ptr->total=0;
         ptr=ptr->next;
     }
 }
@@ -279,25 +333,52 @@ node *find_user_node(node *head,char ch[])
     else
         return head;
 }
-void set_group_activity(node *head)
+void set_group_activity(node *head,int flag)
 {
     int num,i;
     float total;
     node *ptr;
     char ch[20];
     printf("Enter number of students in sub-group : ");
-    scanf("%d",&num);
+    scanf(" %d",&num);
+    if(num<=0)
+    {
+        printf("No Amount Set !!");
+        return;
+    }
     printf("\nEnter Sub Group Amount : ");
-    scanf("%f",&total);
+    jump:
+    scanf(" %f",&total);
+    if(total>bill_amt && flag == 1)
+    {
+        printf("Wrong Amount !!");
+        goto jump;
+    }
+    else if(total>sub_grp_total && flag == 0)
+    {
+        printf("Wrong Amount !!");
+        goto jump;
+    }
+    printf("\nName of all members (for reference) :-\n\n");
+    display_list(head,0);
     printf("\n");
     //Sub-Total is added while calculating group total so it is reduced
-    grp_tot-=total;
+    if(flag)
+    {
+        grp_tot-=total;
+        sub_grp_total+=total;
+    }
+    else
+    {
+        grp_tot+=total;
+        sub_grp_total-=total;
+    }
     total/=(float)num;
     //Adding total to their individual personal grp expenditure
     for(i=0;i<num;++i)
     {
         printf("Enter name of member %d : ",i+1);
-        scanf("%s",ch);
+        scanf(" %[^\n]",ch);
         ptr=find_user_node(head,ch);
         if(ptr==NULL)
         {
@@ -306,6 +387,187 @@ void set_group_activity(node *head)
             continue;
         }
         else
-            ptr->grp+=total;
+        {
+            if(flag)
+                ptr->grp+=total;
+            else
+                ptr->grp-=total;
+        }
+    }
+    if(flag)
+         printf("\n\tGroup Activity Set !!");
+}
+void display_list(node *head,int per)
+{
+    while(head!=NULL)
+    {
+        //if personal amount needed
+        if(per)
+            printf("%s - %.2f\n",head->name,head->per);
+        else
+            printf("%s\n",head->name);
+        head=head->next;
+    }
+}
+void open_edit_menu(node **head)
+{
+    char option;
+    while(1)
+    {
+        CLS;
+        printf("\t\t\tHere you can edit different values\n\n");
+        printf("Choose option :-\n\n");
+        printf("1 - Add New Member\n2 - Remove existing member\n3 - Edit member info\n4 - Change Bill Amount\n5 - Change Entry Fee\n6 - Remove group activity\n\tBackspace = Main Menu\n");
+        option = getch();
+        CLS;
+        switch(option)
+        {
+        case '1':
+            add_new_member(*head);
+            grp_tot=bill_amt-per_tot+entry-sub_grp_total;//Set New Group Total
+            members++;
+            printf("\nNew Member Added !!");
+            hold_screen();
+            break;
+        case '2':
+            *head = remove_member(*head);
+            grp_tot=bill_amt-per_tot+entry-sub_grp_total;//Set New Group Total
+            members--;
+            printf("\nMember Removed !!");
+            hold_screen();
+            break;
+        case '3':
+            printf("\t\t\tHere you can edit member info\n\n");
+            edit_member_info(*head);
+            break;
+        case '4':
+            printf("\t\t\tHere you can set new bill amount\n\n");
+            jump:
+            printf("\tEnter New Final Bill Amount : ");
+            scanf(" %f",&bill_amt);
+            if(bill_amt<per_tot)
+            {
+                printf("  Wrong Bill Amount !!\n");
+                goto jump;
+            }
+            grp_tot=bill_amt-per_tot+entry-sub_grp_total;//Set New Group Total
+            printf("\nNew Bill Amount Set !!");
+            hold_screen();
+            break;
+        case '5':
+            if(entry==0)
+                printf("No Entry Fee Is Set");
+            else
+            {
+                printf("\t\t\tHere you can set new entry amount\n\n");
+                set_entry_fee();
+                grp_tot=bill_amt-per_tot+entry-sub_grp_total;//Set New Group Total
+            }
+            hold_screen();
+            break;
+        case '6':
+            if(sub_grp_total<=0)
+                printf("No existing group activity !!");
+            else
+            {
+                printf("\t\t\tHere You Can Remove Group Activity\n\n");
+                set_group_activity(*head,0);
+                printf("\n\tGroup Activity Removed !!");
+            }
+            hold_screen();
+            break;
+        case 8:
+            return;
+        }
+    }
+}
+void add_new_member(node *head)
+{
+    printf("\t\t\tHere you can add new member\n\n");
+    node *temp = (node*)malloc(sizeof(node));
+    printf("Enter name of member : ");
+    scanf(" %[^\n]",temp->name);
+    temp->per=0;
+    printf("Enter personal expenditure of %s : ",temp->name);
+    scanf(" %f",&temp->per);
+    temp->total=0;
+    temp->grp=0;
+    temp->next=NULL;
+    per_tot+=temp->per;
+    while(head->next!=NULL)
+        head=head->next;
+    head->next=temp;
+}
+node *remove_member(node *head)
+{
+    char ch[20];
+    node *ptr=NULL,*prev=head;
+    printf("\t\t\tHere you can remove existing member\n\n");
+    printf("Name of all members (for reference) :-\n\n");
+    display_list(head,0);
+    printf("\n");
+    while(ptr==NULL)
+    {
+        printf("Enter name of member : ");
+        scanf(" %[^\n]",ch);
+        ptr=find_user_node(head,ch);
+        if(ptr==NULL)
+            printf("User not found !! Try Again !!\n\n");
+    }
+    per_tot-=ptr->per;
+    while(prev->next!=ptr)
+        prev=prev->next;
+    if(ptr==head)
+        head=head->next;
+    else
+        prev->next=ptr->next;
+    free(ptr);
+    return head;
+}
+void edit_member_info(node *head)
+{
+    char ch[20],option;
+    node *ptr=NULL;
+    printf("Name of all members (for reference) :-\n\n");
+    display_list(head,0);
+    printf("\n");
+    while(ptr==NULL)
+    {
+        printf("Enter name of member : ");
+        scanf(" %[^\n]",ch);
+        ptr=find_user_node(head,ch);
+        if(ptr==NULL)
+            printf("User not found !! Try Again !!\n\n");
+    }
+    while(1)
+    {
+        CLS;
+        printf("\t\t\tHere you can edit member info\n\n");
+        printf("Choose Option :-\n\n");
+        printf("1 - Edit Name\n2 - Edit Personal Amount\n\tBackspace - Edit Menu\n");
+        option = getch();
+        CLS;
+        switch(option)
+        {
+        case '1':
+            printf("\t\t\tHere you can edit member name\n\n");
+            printf("Enter New Name : ");
+            scanf(" %[^\n]",ptr->name);
+            printf("\nName Changed !!");
+            hold_screen();
+            break;
+        case '2':
+            printf("\t\t\tHere you can edit member personal expenditure amount\n\n");
+            per_tot-=ptr->per;
+            printf("Enter new personal expenditure of %s : ",ptr->name);
+            scanf(" %f",&ptr->per);
+            per_tot+=ptr->per;
+            grp_tot=bill_amt-per_tot+entry-sub_grp_total;//Set New Group Total
+            printf("\nPersonal expenditure amount changed !!");
+            hold_screen();
+            break;
+        case 8:
+            return;
+        }
     }
 }
