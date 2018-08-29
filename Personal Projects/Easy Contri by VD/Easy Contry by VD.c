@@ -531,8 +531,8 @@ void edit_member_info(node *head)
 {
     char ch[20],option;
     node *ptr=NULL;
-    printf("Name of all members (for reference) :-\n\n");
-    display_list(head,0);
+    printf("Name and personal amount of all members (for reference) :-\n\n");
+    display_list(head,1);
     printf("\n");
     while(ptr==NULL)
     {
@@ -554,6 +554,7 @@ void edit_member_info(node *head)
         {
         case '1':
             printf("\t\t\tHere you can edit member name\n\n");
+            printf("Old Name : %s\n",ptr->name);
             printf("Enter New Name : ");
             scanf(" %[^\n]",ptr->name);
             printf("\nName Changed !!");
@@ -562,6 +563,7 @@ void edit_member_info(node *head)
         case '2':
             printf("\t\t\tHere you can edit member personal expenditure amount\n\n");
             per_tot-=ptr->per;
+            printf("Old  personal expenditure of %s : %f\n",ptr->name,ptr->per);
             printf("Enter new personal expenditure of %s : ",ptr->name);
             scanf(" %f",&ptr->per);
             per_tot+=ptr->per;
