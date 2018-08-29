@@ -215,7 +215,10 @@ void set_entry_fee(void)
         goto jump;
     }
     else if(entry <= 0)
+    {
+        entry = 0;
         printf("Empty amount set !!");
+    }
     else
     {
         //Treat entry fee as group activity
