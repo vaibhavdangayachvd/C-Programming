@@ -3,8 +3,9 @@
     #created 28/08/18 3:10AM
 
     @author Vaibhav As VD
-    @version 1.0 (28/08/18 3:10AM)
+    @version 1.0 (28/08/18 03:10AM)
     @version 1.2 (29/08/18 11:41PM)
+    @version 1.3 (01/09/18 12:20AM)
 
 
     Change log :-
@@ -30,6 +31,10 @@
                      - Display User List
                      - Remove Group activity
                      - Add/Remove/Edit Members Info
+
+  v1.3 - Feature Add - Display who has to pay whom and how much
+       - Stack Implementation for payment feature
+       - Added paid field to structure details
 */
 //Preprocessor Directives
 #include<stdio.h>
@@ -49,9 +54,17 @@ struct details
     float per;
     float grp;
     float total;
+    float paid;
     struct details *next;
 };
 typedef struct details node;
+//Stack Structure
+struct stack
+{
+    node *ptr;
+    struct stack *next;
+}*top=NULL;//Top
+typedef struct stack st_node;
 //Global Variables
 float entry=0,per_tot=0,grp_tot=0,bill_amt=0,sub_grp_total=0;
 int members = 0;
@@ -62,6 +75,7 @@ void set_entry_fee(void);//Set Entry Fee
 void set_group_activity(node *head,int flag);//Set Inter group activity 1- add;0 - remove
 node *find_user_node(node *head,char ch[]);//Find node from name
 void calculate(node *head);//Calculate Result
+void calculate_share(node *head,int count);//Calculate Each Persons Share
 void distri_extra(node *head,float extra,int count);//Recursively Distribute Extra Amount
 node*reset(node *head);//Reset Casino
 void display_list(node *head,int per);//Display List with or without personal amt
@@ -70,6 +84,10 @@ void open_edit_menu(node **head);//Open edit menu
 void add_new_member(node *head);//Add Member
 node *remove_member(node *head);//Remove Member
 void edit_member_info(node *head);//Edit member info
+//Stack Functions
+void push(node *ptr);
+void pop(void);
+//Main program start
 int main()
 {
     node *head=NULL;
@@ -166,7 +184,7 @@ int main()
             return 0;
         }
     }
-}
+}//Main End Here
 void hold_screen()
 {
     printf("\n\n\t\t\tPress Enter to continue...");
@@ -183,6 +201,7 @@ void create_list(node *head)
         printf("Enter personal expenditure of %s : ",head->name);
         scanf(" %f",&head->per);
         head->total=0;
+        head->paid=0;
         head->grp=0;
         per_tot+=head->per;
         printf("\n");
@@ -273,7 +292,20 @@ void calculate(node *head)
     {
         printf("%s - Rs. %.2f\n",ptr->name,ptr->total);
         ptr->grp-=(grp_tot/members);
-        ptr->total=0;
+        ptr=ptr->next;
+    }
+    printf("\nEnter number of people who contributed in bill payment (0 to skip this step and exit): ");
+    scanf("%d",&count);
+    printf("\n");
+    if(count<=0)
+        return;
+    else
+        calculate_share(head,count);
+    ptr=head;
+    while(ptr!=NULL)
+    {
+        ptr->paid = 0;
+        ptr->total= 0;
         ptr=ptr->next;
     }
 }
@@ -315,6 +347,78 @@ void distri_extra(node *head,float extra,int count)
     //if balance is accumulated try again with updated extra balance and count
     distri_extra(head,extra,count);
 }
+void calculate_share(node *head,int count)
+{
+    int i;
+    char ch[20];
+    node *ptr;
+    float amount;
+    for(i=0;i<count;++i)
+    {
+        printf("Enter name of payer %d : ",i+1);
+        scanf(" %[^\n]",ch);
+        ptr=find_user_node(head,ch);
+        if(ptr==NULL)
+        {
+            printf("User not found !! Try Again !!\n\n");
+            --i;
+            continue;
+        }
+        else
+        {
+            printf("Enter amount paid by %s : ",ptr->name);
+            scanf("%f",&ptr->paid);
+            printf("\n");
+            if(ptr->paid>ptr->total)
+                push(ptr);
+        }
+    }
+    printf("Pay as follows :-\n\n");
+    ptr=head;
+    while(ptr!=NULL)
+    {
+        //If someone paid less than total or paid nothing
+        if(ptr->paid < ptr->total)
+        {
+            //if extra payer on stack has nothing ext left
+            if(top->ptr->paid-top->ptr->total==0)
+                pop();
+            //If extra payer can settle full leftover amount
+            if(top->ptr->paid-top->ptr->total>=ptr->total-ptr->paid)
+            {
+                printf("%s pay %.2f to %s\n\n",ptr->name,(ptr->total-ptr->paid),top->ptr->name);
+                top->ptr->paid-=(ptr->total-ptr->paid);
+                ptr->paid=ptr->total;
+                ptr=ptr->next;
+            }
+            //if extra payer can settle some portion of amount
+            else
+            {
+                ptr->paid+=(top->ptr->paid-top->ptr->total);
+                printf("%s pay %.2f to %s\n",ptr->name,(top->ptr->paid-top->ptr->total),top->ptr->name);
+                top->ptr->paid-=(top->ptr->paid-top->ptr->total);
+            }
+        }
+        else
+            ptr=ptr->next;
+    }
+}
+void push(node *ptr)
+{
+    st_node *temp=(st_node*)malloc(sizeof(st_node));
+    temp->ptr=ptr;
+    temp->next=top;
+    top=temp;
+}
+void pop(void)
+{
+    st_node *temp;
+    if(top==NULL)
+        return;
+    temp=top;
+    top=top->next;
+    free(temp);
+}
 node * reset(node *head)
 {
     node *ptr=head;
@@ -322,7 +426,7 @@ node * reset(node *head)
     {
         ptr=head;
         head=head->next;
-        ptr->per=0,ptr->grp=0,ptr->total=0;
+        ptr->per=0,ptr->grp=0,ptr->total=0,ptr->paid=0;
         free(ptr);
     }
     return head;
