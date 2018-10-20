@@ -4,6 +4,11 @@
 #define MAX 100
 #define INITIAL 0
 #define VISITED 1
+#define FINISHED 2
+//Time
+int time;
+int bt[MAX];
+int ft[MAX];
 //Stack Function and variables
 int stack[MAX];
 int top=-1;
@@ -17,16 +22,22 @@ int n;
 void create_graph(void);
 void dfs(int num);
 void dfs_rec(int num);
+void dfs_edge(int num);
 //Main Function
 int main()
 {
-    int num;
+    int num,i;
     create_graph();
     printf("Enter starting vertex : ");
     do
         scanf("%d",&num);
     while(num<0 || num>=n);
-    dfs_rec(num);
+    dfs_edge(num);
+    for(i=0;i<n;++i)
+    {
+        if(status[i]==INITIAL)
+            dfs_edge(i);
+    }
     return 0;
 }
 //Stack Functions
@@ -110,4 +121,30 @@ void dfs_rec(int num)
         if(graph[num][i] && status[i]==INITIAL)
             dfs_rec(i);
     }
+}
+void dfs_edge(int num)
+{
+    int i;
+    bt[num]= ++time;
+    printf("%d ",num);
+    status[num]=VISITED;
+    for(i=0;i<n;++i)
+    {
+        if(graph[num][i])
+        {
+            if(status[i]==INITIAL)
+            {
+                printf("Tree Edge - (%d,%d)\n",num,i);
+                dfs_edge(i);
+            }
+            else if(status[i]==VISITED)
+                printf("Back Edge - (%d,%d)\n",num,i);
+            else if(bt[num]<bt[i])
+                printf("Forward Edge - (%d,%d)\n",num,i);
+            else
+                printf("Cross Edge - (%d,%d)\n",num,i);
+        }
+    }
+    status[num]=FINISHED;
+    ft[num]=++time;
 }
